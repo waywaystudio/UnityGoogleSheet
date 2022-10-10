@@ -74,3 +74,4 @@ public partial class SpreadSheetScriptableObject : TableObject
 ---
 # 패치내역
 * 22.10.09 첫 작성
+* 22.10.10 Submoudlize, Dependency
