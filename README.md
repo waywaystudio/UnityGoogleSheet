@@ -37,11 +37,11 @@
   * SpreadSheet Data Sciprt List 를 통해서, 아직 SO가 만들어지지 않은 스크립트는 SO를 만들고, 기존에 SO는 내용을 업데이트 합니다.
 
 ---
-## UGS Scriptable Object : TableObject
+## UGS Scriptable Object
 ### ex.SpreadSheetScriptableObject.cs
 ```C#
 
-public partial class SpreadSheetScriptableObject : TableObject
+public partial class SpreadSheetScriptableObject : ScriptableObject
 {
     [SerializeField]
     private List<SpreadSheetScriptableObject> list = new ();
