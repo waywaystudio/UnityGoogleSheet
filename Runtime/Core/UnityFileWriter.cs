@@ -26,6 +26,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                 System.IO.Directory.CreateDirectory(UgsConfig.Instance.JsonDataPath);
             }
             
+            UnityEngine.Debug.Log($"<color=green>{dataName}.json</color> Created");
             System.IO.File.WriteAllText(targetPath, content);
         }
 

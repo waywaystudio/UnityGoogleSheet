@@ -2,11 +2,11 @@
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 #endif
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Sirenix.Utilities;
 using UnityEngine;
 using Wayway.Engine.UnityGoogleSheet.Core;
 using Wayway.Engine.UnityGoogleSheet.Core.HttpProtocolV2;
@@ -23,55 +23,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
 #endif
     public class UgsExplorer : ScriptableObject
     {
-        public static UgsExplorer Instance => Resources.LoadAll<UgsExplorer>("").FirstOrDefault();
-        
-        public enum FileType
-        {
-            Folder, 
-            ParentFolder, 
-            Excel, 
-            Unknown
-        }
-        
-        [Serializable]
-        public class FileData
-        {
-            public FileData(FileType type, string url, string id, string fileName, Action actionTemplate)
-            {
-                this.type = type;
-                this.url = url;
-                this.fileName = fileName;
-                this.id = id;
-                this.actionTemplate = actionTemplate;
-            }
-            
-            public FileType type;
-            public string id;
-            public string url;
-            public string fileName;
-            private Action actionTemplate;
-            private bool IsExcelType => type is FileType.Excel;
-
-            /* Function(A,B)는 오딘의 버튼이미지 출력방식 때문 구현.
-             * Sirenix에서 이미지를 출력할 수 있게 패치한다고 발표함.
-             * 이후 구조 변경할 예정.
-             */ 
-            public void FunctionA() => actionTemplate?.Invoke();
-            public void FunctionB() => actionTemplate?.Invoke();
-            
-            public void Link()
-            {
-                if (string.IsNullOrEmpty(url))
-                {
-                    Debug.LogWarning("url is Empty");
-                    return;
-                }
-                
-                Application.OpenURL(url);
-            }
-        }
-
-        public List<FileData> LoadedFileDataList = new ();
+        public List<FileData> DriveFileDataList = new ();
         
         private static readonly Stack<string> PrevFolderIDStack = new ();
         private string currentViewFolderID;
@@ -80,7 +32,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
 
         public static void ParseWorkSheet(string fileID, string workSheetName)
         {
-            PreloadType();
+            TypeMap.Init();
             
             UnityEditorWebRequest.Instance.ReadSpreadSheet(
                 new ReadSpreadSheetReqModel(fileID), 
@@ -94,7 +46,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
         
         public static void ParseSpreadSheet(string fileID)
         {
-            PreloadType();
+            TypeMap.Init();
             
             UnityEditorWebRequest.Instance.ReadSpreadSheet(
                 new ReadSpreadSheetReqModel(fileID), 
@@ -105,36 +57,19 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
                     UnityGSParser.ParseSheet(x);
                 });
         }
-        
-        private void ParseAllSpreadSheet()
-        {
-            PreloadType();
-            
-            foreach (var file in LoadedFileDataList.Where(file => file.type == FileType.Excel))
-            {
-                ParseSpreadSheet(file.id);
-            }
-        }
 
-        private static void PreloadType() => TypeMap.Init();
+        private void ParseAllSpreadSheet() => DriveFileDataList.Where(file => file.type == FileType.Excel)
+                                                               .ForEach(x => ParseSpreadSheet(x.id));
 
         private void Show()
         {
             isInitiated = true;
-            CreateFile(UgsConfig.Instance.GoogleFolderID);
+            LoadDriveFiles(UgsConfig.Instance.GoogleFolderID);
         }
 
-        private void Clear()
+        private void LoadDriveFiles(string folderID)
         {
-            isInitiated = false;
-            isWaitForCreate = false;
-            PrevFolderIDStack.Clear();
-            LoadedFileDataList.Clear();
-        }
-
-        private void CreateFile(string folderID)
-        {
-            LoadedFileDataList.Clear();
+            DriveFileDataList.Clear();
 
             if (isWaitForCreate) return;
             isWaitForCreate = true;
@@ -144,7 +79,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
                 // 루트폴더가 아닐 경우, 상위로 폴더로 이동하는 FileData 추가
                 if (folderID != UgsConfig.Instance.GoogleFolderID)
                 {
-                    LoadedFileDataList.Add(new FileData(FileType.ParentFolder,
+                    DriveFileDataList.Add(new FileData(FileType.ParentFolder,
                                                          UgsConfig.Instance.GoogleFolderID, 
                                                             UgsConfig.Instance.GoogleFolderID, 
                                                     "../",
@@ -158,14 +93,15 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
                 // 구글드라이브 폴더의 파일을 List<FileData>에 추가
                 for (var i = 0; i < x.fileId.Count; i++)
                 {
-                    LoadedFileDataList.Add(new FileData((FileType)x.fileType[i], 
+                    DriveFileDataList.Add(new FileData((FileType)x.fileType[i], 
                                                                       x.url[i], 
                                                                       x.fileId[i], 
                                                                       x.fileName[i],
                                                                       ActionSelector((FileType)x.fileType[i], x.fileId[i])));
                 }
 
-                LoadedFileDataList = LoadedFileDataList.OrderBy(fileData => fileData.fileName).ToList();
+                DriveFileDataList = DriveFileDataList.OrderBy(fileData => fileData.fileName)
+                                                       .ToList();
                 isWaitForCreate = false;
             });
         }
@@ -182,14 +118,22 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
         {
             PrevFolderIDStack.Push(currentViewFolderID);
             currentViewFolderID = fileID;
-            CreateFile(currentViewFolderID);
+            LoadDriveFiles(currentViewFolderID);
         }
 
         private void ToParent()
         {
             var prevFolder = PrevFolderIDStack.Pop();
             currentViewFolderID = prevFolder;
-            CreateFile(currentViewFolderID);
+            LoadDriveFiles(currentViewFolderID);
+        }
+        
+        private void Clear()
+        {
+            isInitiated = false;
+            isWaitForCreate = false;
+            PrevFolderIDStack.Clear();
+            DriveFileDataList.Clear();
         }
     }
     
@@ -197,11 +141,11 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
     #region PropertyDrawer
     public class UgsExplorerDrawer : OdinAttributeProcessor<UgsExplorer>
     {
-        public override void ProcessChildMemberAttributes(InspectorProperty parentProperty, MemberInfo member, List<System.Attribute> attributes)
+        public override void ProcessChildMemberAttributes(InspectorProperty parentProperty, MemberInfo member, List<Attribute> attributes)
         {
             switch (member.Name)
             {
-                case "LoadedFileDataList":
+                case "DriveFileDataList":
                     attributes.Add(new ListDrawerSettingsAttribute
                     {
                         Expanded = true,
@@ -222,72 +166,6 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
                     {
                         Name = "Parse All Spread Sheet in this Section"
                     });
-                    break;
-            }
-        }
-    }
-
-    public class FileDataDrawer : OdinAttributeProcessor<UgsExplorer.FileData>
-    {
-        public override void ProcessChildMemberAttributes(InspectorProperty parentProperty, MemberInfo member, List<System.Attribute> attributes)
-        {
-            switch (member.Name)
-            {
-                case "type" :
-                    attributes.Add(new HideInInspector());
-                    break;
-                case "id" :
-                    attributes.Add(new HideInInspector());
-                    break;
-                case "url" :
-                    attributes.Add(new HideInInspector());
-                    break;
-                case "fileName" :
-                    attributes.Add(new HorizontalGroupAttribute("Group")
-                    {
-                        PaddingLeft = 10f
-                    });
-                    attributes.Add(new HideLabelAttribute());
-                    attributes.Add(new DisplayAsStringAttribute());
-                    attributes.Add(new PropertyOrderAttribute(3f));
-                    break;
-                case "FunctionA" :
-                    attributes.Add(new HorizontalGroupAttribute("Group")
-                    {
-                        Width = 30f
-                    });
-                    attributes.Add(new ButtonAttribute(" ")
-                    {
-                        ButtonHeight = 22
-                    });
-                    attributes.Add(new ButtonIconAttribute("Folder"));
-                    attributes.Add(new PropertyOrderAttribute(1f));
-                    attributes.Add(new HideIfAttribute("IsExcelType"));
-                    break;
-                case "FunctionB" :
-                    attributes.Add(new HorizontalGroupAttribute("Group")
-                    {
-                        Width = 30f
-                    });
-                    attributes.Add(new ButtonAttribute(" ")
-                    {
-                        ButtonHeight = 22
-                    });
-                    attributes.Add(new ButtonIconAttribute("Download"));
-                    attributes.Add(new PropertyOrderAttribute(1f));
-                    attributes.Add(new ShowIfAttribute("IsExcelType"));
-                    break;
-                case "Link" :
-                    attributes.Add(new HorizontalGroupAttribute("Group")
-                    {
-                        Width = 30f
-                    });
-                    attributes.Add(new ButtonAttribute(" ")
-                    {
-                        ButtonHeight = 22
-                    });
-                    attributes.Add(new ButtonIconAttribute("Link"));
-                    attributes.Add(new PropertyOrderAttribute(2f));
                     break;
             }
         }

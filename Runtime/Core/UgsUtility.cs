@@ -125,6 +125,11 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                 Debug.LogError("at least one of a Parameter value is <b><color=red>NULL!</color></b>");
                 return null;
             }
+            
+            if (!System.IO.Directory.Exists(folderPath))
+            {
+                System.IO.Directory.CreateDirectory(folderPath);
+            }
 
             if (FindScriptableObject(className, folderPath, out var result))
             {

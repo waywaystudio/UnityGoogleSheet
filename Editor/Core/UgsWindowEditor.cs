@@ -1,8 +1,10 @@
 #if ODIN_INSPECTOR
+using System.Linq;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
+using UnityEngine;
 using Wayway.Engine.UnityGoogleSheet.Core;
 
 namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
@@ -18,11 +20,13 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
         
         protected override OdinMenuTree BuildMenuTree()
         {
+            var explorer = Resources.LoadAll<UgsExplorer>("").FirstOrDefault();
+            
             var tree = new OdinMenuTree(supportsMultiSelect: true)
             {
                 // { "Home",            this,                     EditorIcons.House         },
                 { "UGS Config",      UgsConfig.Instance ,      EditorIcons.SettingsCog   },
-                { "UGS Generator",   UgsExplorer.Instance,     EditorIcons.Table         },
+                { "UGS Generator",   explorer,                 EditorIcons.Table         },
                 { "UGS DataList",    UgsDataList.Instance,     EditorIcons.List          },
             };
 

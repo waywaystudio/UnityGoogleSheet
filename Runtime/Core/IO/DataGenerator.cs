@@ -12,11 +12,6 @@ namespace Wayway.Engine.UnityGoogleSheet.Core.IO
              this.info = info;
         }
        
-        public string Generate()
-        {
-            Debug.Log($"Generate {info.spreadSheetName}.Json Data Complete");
-            
-            return JsonConvert.SerializeObject(info, Formatting.Indented); 
-        }
+        public string Generate() => JsonConvert.SerializeObject(info);
     }
 }

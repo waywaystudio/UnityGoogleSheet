@@ -14,7 +14,7 @@ using Sirenix.OdinInspector.Editor;
 namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
 {
 #if ODIN_INSPECTOR
-    [OnInspectorInit("GetTableObjectList")]
+    [OnInspectorInit("GetScriptableObjectList")]
 #endif
     public class UgsDataList : ScriptableObject
     {
@@ -23,15 +23,15 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
         [SerializeField] private List<ScriptableObject> spreadSheetDataList;
         [SerializeField] private List<Object> tableDataList;
 
-        private void GetTableObjectList()
+        private void GetScriptableObjectList()
         {
             spreadSheetDataList = UgsUtility.GetScriptableObjectList(UgsConfig.Instance.ScriptableObjectDataPath, UgsConfig.Instance.Suffix);
-            tableDataList = UgsUtility.GetObjectList("TableObject", UgsConfig.Instance.ScriptableObjectScriptPath, UgsConfig.Instance.Suffix);
+            tableDataList = UgsUtility.GetObjectList("ScriptableObject", UgsConfig.Instance.ScriptableObjectScriptPath, UgsConfig.Instance.Suffix);
         }
         
         private void UpdateTableObjectList()
         {
-            var tableObjectList = UgsUtility.GetObjectList("TableObject", UgsConfig.Instance.ScriptableObjectScriptPath, UgsConfig.Instance.Suffix);
+            var tableObjectList = UgsUtility.GetObjectList("ScriptableObject", UgsConfig.Instance.ScriptableObjectScriptPath, UgsConfig.Instance.Suffix);
 
             tableObjectList.ForEach(x =>
             {
@@ -45,7 +45,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
                 EditorUtility.SetDirty(result);
             });
 
-            GetTableObjectList();
+            GetScriptableObjectList();
             AssetDatabase.Refresh();
         }
     }
