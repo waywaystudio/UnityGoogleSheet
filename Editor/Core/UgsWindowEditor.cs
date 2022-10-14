@@ -21,13 +21,14 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
         protected override OdinMenuTree BuildMenuTree()
         {
             var explorer = Resources.LoadAll<UgsExplorer>("").FirstOrDefault();
+            var dataList = Resources.LoadAll<UgsDataList>("").FirstOrDefault();
             
             var tree = new OdinMenuTree(supportsMultiSelect: true)
             {
                 // { "Home",            this,                     EditorIcons.House         },
                 { "UGS Config",      UgsConfig.Instance ,      EditorIcons.SettingsCog   },
                 { "UGS Generator",   explorer,                 EditorIcons.Table         },
-                { "UGS DataList",    UgsDataList.Instance,     EditorIcons.List          },
+                { "UGS DataList",    dataList,                 EditorIcons.List          },
             };
 
             tree.DefaultMenuStyle.Height = 40;

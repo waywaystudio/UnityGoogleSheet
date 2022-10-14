@@ -27,9 +27,9 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
 #pragma warning disable CS0414
 #if UNITY_EDITOR
 using System.Reflection;
-using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 #endif
+using Sirenix.OdinInspector;
 @assemblies
 namespace @namespace
 {    

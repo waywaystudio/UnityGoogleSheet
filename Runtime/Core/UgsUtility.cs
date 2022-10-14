@@ -39,27 +39,6 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
 
             return result;
         }
-
-        public static List<ScriptableObject> GetScriptableObjectList(string folderPath, string filter)
-        {
-            var result = new List<ScriptableObject>();
-#if UNITY_EDITOR
-            if (string.IsNullOrEmpty(folderPath)) folderPath = "Assets";
-            if (string.IsNullOrEmpty(filter)) filter = "";
-
-            var gUIDs = UnityEditor.AssetDatabase.FindAssets(filter, new [] { folderPath });
-
-            foreach (var x in gUIDs)
-            {
-                var assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(x);
-                var data = UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, typeof(ScriptableObject)) as ScriptableObject;
-
-                if (!result.Contains(data))
-                    result.Add(data);
-            }
-#endif
-            return result;
-        }
         
         public static ScriptableObject GetScriptableObject(string className, string folderPath)
         {

@@ -15,16 +15,16 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
     {
         public static void ParseJsonData(ReadSpreadSheetResult sheetJsonData)
         {
-            var jsonData = GenerateData(sheetJsonData);
+            var importJsonData = GenerateData(sheetJsonData);
             var existJsonData = GetExistJsonFileText(sheetJsonData.spreadSheetName);
 
-            if (IsSameHashCode(jsonData, existJsonData))
+            if (IsSameHashCode(importJsonData, existJsonData))
             {
-                Debug.Log($"<color=green>{sheetJsonData.spreadSheetName}</color> is nothing changed. Writing Process Skipped");
+                Debug.Log($"{sheetJsonData.spreadSheetName} is nothing changed. Writing Process Skipped");
                 return;
             }
 
-            UnityFileWriter.WriteJsonData(sheetJsonData.spreadSheetName, jsonData);
+            UnityFileWriter.WriteJsonData(sheetJsonData.spreadSheetName, importJsonData);
         }
 
         public static void ParseSheet(ReadSpreadSheetResult sheetJsonData) => ParseSheet(sheetJsonData, null);
@@ -47,21 +47,19 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
             
             foreach (var sheet in sheetJsonData.jsonObject)
             {
-                var jsonObject =
-                    JObject.Parse(GetExistJsonFileText(sheetJsonData.spreadSheetName));
-
-                Debug.Log(JsonConvert.SerializeObject(sheet, Formatting.Indented));
-                Debug.Log(jsonObject.GetValue("jsonObject"));
-                
-                // Debug.Log(GetExistJsonFileText(sheetJsonData.spreadSheetName).GetHashCode());
-                
-                // load spreadSheet json file.
-                // load json file.worksheet
-                // compare worksheet.hashcode with sheetJsonData.jsonObject.hashcode
-                // if (sheet.GetHashCode())
-                
                 if (workSheet != null && sheet.Key != targetWorkSheetName)
                 {
+                    count++;
+                    continue;
+                }
+                
+                var existedWorkSheetText = GetExistJsonWorkSheetText(sheetJsonData.spreadSheetName, sheet.Key);
+                var importWorkSheetText = JsonConvert.SerializeObject(sheet.Value, Formatting.Indented);
+
+                if (IsSameHashCode(existedWorkSheetText, importWorkSheetText))
+                {
+                    Debug.Log($"{sheet.Key} is nothing changed. Writing Process Skipped");
+                    
                     count++;
                     continue;
                 }
@@ -141,6 +139,16 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
             var jsonFileText = File.ReadAllText(jsonFilePath);
 
             return jsonFileText;
+        }
+
+        private static string GetExistJsonWorkSheetText(string spreadSheetName, string workSheetName)
+        {
+            var jsonSheetObject = (JObject)JObject.Parse(GetExistJsonFileText(spreadSheetName))
+                                                  .GetValue("jsonObject");
+            var jsonWorkSheet = jsonSheetObject?.GetValue(workSheetName);
+
+            return jsonWorkSheet != null ? jsonWorkSheet.ToString() 
+                                         : string.Empty;
         }
 
         private static bool IsSameHashCode(string one, string another)

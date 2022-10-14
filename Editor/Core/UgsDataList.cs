@@ -9,6 +9,7 @@ using Wayway.Engine.UnityGoogleSheet.Core;
 #if ODIN_INSPECTOR
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
+// ReSharper disable UnusedMember.Local
 #endif
 
 namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
@@ -18,14 +19,12 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
 #endif
     public class UgsDataList : ScriptableObject
     {
-        public static UgsDataList Instance => Resources.LoadAll<UgsDataList>("").FirstOrDefault();
-        
         [SerializeField] private List<ScriptableObject> spreadSheetDataList;
         [SerializeField] private List<Object> tableDataList;
 
         private void GetScriptableObjectList()
         {
-            spreadSheetDataList = UgsUtility.GetScriptableObjectList(UgsConfig.Instance.ScriptableObjectDataPath, UgsConfig.Instance.Suffix);
+            spreadSheetDataList = GetScriptableObjectList(UgsConfig.Instance.ScriptableObjectDataPath, UgsConfig.Instance.Suffix);
             tableDataList = UgsUtility.GetObjectList("ScriptableObject", UgsConfig.Instance.ScriptableObjectScriptPath, UgsConfig.Instance.Suffix);
         }
         
@@ -47,6 +46,27 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
 
             GetScriptableObjectList();
             AssetDatabase.Refresh();
+        }
+        
+        public static List<ScriptableObject> GetScriptableObjectList(string folderPath, string filter)
+        {
+            var result = new List<ScriptableObject>();
+#if UNITY_EDITOR
+            if (string.IsNullOrEmpty(folderPath)) folderPath = "Assets";
+            if (string.IsNullOrEmpty(filter)) filter = "";
+
+            var gUIDs = UnityEditor.AssetDatabase.FindAssets(filter, new [] { folderPath });
+
+            foreach (var x in gUIDs)
+            {
+                var assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(x);
+                var data = UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, typeof(ScriptableObject)) as ScriptableObject;
+
+                if (!result.Contains(data))
+                    result.Add(data);
+            }
+#endif
+            return result;
         }
     }
     
