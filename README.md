@@ -75,3 +75,4 @@ public partial class SpreadSheetScriptableObject : ScriptableObject
 # 패치내역
 * 22.10.09 첫 작성
 * 22.10.10 Submoudlize, Dependency
+* 22.10.15 HashCode를 비교 추가 
