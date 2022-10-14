@@ -18,7 +18,8 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
             var importJsonData = GenerateData(sheetJsonData);
             var existJsonData = GetExistJsonFileText(sheetJsonData.spreadSheetName);
 
-            if (IsSameHashCode(importJsonData, existJsonData))
+            if (UgsConfig.Instance.CompareHashCode &&
+                IsSameHashCode(importJsonData, existJsonData))
             {
                 Debug.Log($"{sheetJsonData.spreadSheetName} is nothing changed. Writing Process Skipped");
                 return;
@@ -30,8 +31,8 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
         public static void ParseSheet(ReadSpreadSheetResult sheetJsonData) => ParseSheet(sheetJsonData, null);
         public static void ParseSheet(ReadSpreadSheetResult sheetJsonData, string targetWorkSheetName)
         {
-            if (!UgsConfig.Instance.doGenerateCSharpScript && 
-                !UgsConfig.Instance.doGenerateScriptableObject) 
+            if (!UgsConfig.Instance.DoGenerateCSharpScript && 
+                !UgsConfig.Instance.DoGenerateScriptableObject) 
                 return;
             
             var workSheet = targetWorkSheetName is null ? null 
@@ -56,7 +57,8 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                 var existedWorkSheetText = GetExistJsonWorkSheetText(sheetJsonData.spreadSheetName, sheet.Key);
                 var importWorkSheetText = JsonConvert.SerializeObject(sheet.Value, Formatting.Indented);
 
-                if (IsSameHashCode(existedWorkSheetText, importWorkSheetText))
+                if (UgsConfig.Instance.CompareHashCode &&
+                    IsSameHashCode(existedWorkSheetText, importWorkSheetText))
                 {
                     Debug.Log($"{sheet.Key} is nothing changed. Writing Process Skipped");
                     
@@ -91,13 +93,13 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                     isEnumChecks = isEnum
                 };
             
-                if (UgsConfig.Instance.doGenerateCSharpScript)
+                if (UgsConfig.Instance.DoGenerateCSharpScript)
                 {
                     var result = GenerateCSharpCode(info);
                     UnityFileWriter.WriteCSharpScript(info.sheetFileName, $"{info.sheetName}", result);
                 }
 
-                if (UgsConfig.Instance.doGenerateScriptableObject)
+                if (UgsConfig.Instance.DoGenerateScriptableObject)
                 {
                     var result = GenerateScriptableObjectCode(info);
                     UnityFileWriter.WriteScriptableObjectScript(info.sheetFileName,$"{info.sheetName}{UgsConfig.Instance.Suffix}", result);

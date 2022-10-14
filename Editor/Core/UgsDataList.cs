@@ -15,14 +15,14 @@ using Sirenix.OdinInspector.Editor;
 namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
 {
 #if ODIN_INSPECTOR
-    [OnInspectorInit("GetScriptableObjectList")]
+    [OnInspectorInit("GetSheetDataObjectList")]
 #endif
     public class UgsDataList : ScriptableObject
     {
         [SerializeField] private List<ScriptableObject> spreadSheetDataList;
         [SerializeField] private List<Object> tableDataList;
 
-        private void GetScriptableObjectList()
+        private void GetSheetDataObjectList()
         {
             spreadSheetDataList = GetScriptableObjectList(UgsConfig.Instance.ScriptableObjectDataPath, UgsConfig.Instance.Suffix);
             tableDataList = UgsUtility.GetObjectList("ScriptableObject", UgsConfig.Instance.ScriptableObjectScriptPath, UgsConfig.Instance.Suffix);
@@ -44,7 +44,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
                 EditorUtility.SetDirty(result);
             });
 
-            GetScriptableObjectList();
+            GetSheetDataObjectList();
             AssetDatabase.Refresh();
         }
         

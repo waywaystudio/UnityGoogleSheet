@@ -11,11 +11,11 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
 {
     public class UgsWindowEditor : OdinMenuEditorWindow
     {
-        [MenuItem("Wayway/UGS")]
+        [MenuItem("Wayway/UnityGoogleSheet")]
         private static void OpenWindow()
         {
             var window = GetWindow<UgsWindowEditor>();
-            window.position = GUIHelper.GetEditorWindowRect().AlignCenter(800, 700);
+            window.position = GUIHelper.GetEditorWindowRect().AlignCenter(800, 800);
         }
         
         protected override OdinMenuTree BuildMenuTree()

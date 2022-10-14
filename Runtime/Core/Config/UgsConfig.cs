@@ -11,8 +11,9 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
 {
     public class UgsConfig : ScriptableObject
     {
-        public bool doGenerateCSharpScript;
-        public bool doGenerateScriptableObject;
+        public bool DoGenerateCSharpScript;
+        public bool DoGenerateScriptableObject;
+        public bool CompareHashCode;
         
         public string GoogleScriptUrl;
         public string Password;
@@ -51,14 +52,21 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                     attributes.Add(new PropertySpaceAttribute(0f, 25f));
                     break;
                 case "JsonDataPath":
-                    attributes.Add(new TitleGroupAttribute("JSON File", "Generate Options", order : 1f));
+                    attributes.Add(new TitleGroupAttribute("Common Setting", "Generate Options", order : 1f));
                     attributes.Add(new FolderPathAttribute());
                     attributes.Add(new InfoBoxAttribute(
                         "\nUGS 기본옵션 입니다.\n" +
                         "Path에 반드시 <color=green>Resources</color> 가 포함되어야 합니다.\n"));
                     attributes.Add(new PropertySpaceAttribute(0f, 25f));
                     break;
-                case "doGenerateCSharpScript":
+                case "CompareHashCode":
+                    attributes.Add(new TitleGroupAttribute("Common Setting", order : 2f));
+                    attributes.Add(new InfoBoxAttribute(
+                        "\n체크 하면 데이터를 불러올 때 기존 데이터와 비교합니다..\n" +
+                        "값이 같으면 파일을 생성하지 않습니다. 최적화에 유리합니다.\n" +
+                        "자동 생성되는 데이터를 수정할 예정이라면, 체크를 해재하고 작업해주세요\n"));
+                    break;
+                case "DoGenerateCSharpScript":
                     attributes.Add(new TitleGroupAttribute("C# Script", "Generate Options", order : 2f));
                     attributes.Add(new InfoBoxAttribute(
                         "\nUGS 기본옵션 입니다.\n" +
@@ -66,11 +74,11 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                     break;
                 case "CSharpScriptPath":
                     attributes.Add(new TitleGroupAttribute("C# Script"));
-                    attributes.Add(new ShowIfAttribute("doGenerateCSharpScript"));
+                    attributes.Add(new ShowIfAttribute("DoGenerateCSharpScript"));
                     attributes.Add(new FolderPathAttribute());
                     attributes.Add(new PropertySpaceAttribute(0f, 25f));
                     break;
-                case "doGenerateScriptableObject":
+                case "DoGenerateScriptableObject":
                     attributes.Add(new InfoBoxAttribute(
                         "\nWayway 추가옵션 입니다.\n" +
                         "체크하면 스크립터블 오브젝트를 생성합니다.\n"));
@@ -78,17 +86,17 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                     break;
                 case "Suffix":
                     attributes.Add(new TitleGroupAttribute("ScriptableObject"));
-                    attributes.Add(new ShowIfAttribute("doGenerateScriptableObject"));
+                    attributes.Add(new ShowIfAttribute("DoGenerateScriptableObject"));
                     attributes.Add(new TooltipAttribute("Generated Script Name Suffix. (ClassNameSuffix.asset)"));
                     break;
                 case "ScriptableObjectDataPath":
                     attributes.Add(new TitleGroupAttribute("ScriptableObject"));
-                    attributes.Add(new ShowIfAttribute("doGenerateScriptableObject"));
+                    attributes.Add(new ShowIfAttribute("DoGenerateScriptableObject"));
                     attributes.Add(new FolderPathAttribute());
                     break;
                 case "ScriptableObjectScriptPath":
                     attributes.Add(new TitleGroupAttribute("ScriptableObject"));
-                    attributes.Add(new ShowIfAttribute("doGenerateScriptableObject"));
+                    attributes.Add(new ShowIfAttribute("DoGenerateScriptableObject"));
                     attributes.Add(new FolderPathAttribute());
                     attributes.Add(new PropertySpaceAttribute(0f, 25f));
                     break;
