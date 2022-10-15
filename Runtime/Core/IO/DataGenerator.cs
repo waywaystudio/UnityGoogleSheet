@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using UnityEngine;
 using Wayway.Engine.UnityGoogleSheet.Core.HttpProtocolV2;
 
 namespace Wayway.Engine.UnityGoogleSheet.Core.IO

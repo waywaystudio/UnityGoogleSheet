@@ -52,8 +52,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                     }
                 }
                 else 
-                    errCallback?.Invoke(new System.Exception("Internal Error")); 
-
+                    errCallback?.Invoke(new System.Exception("Internal Error"));
 
                 response.Close();
                 EditorUtility.ClearProgressBar();

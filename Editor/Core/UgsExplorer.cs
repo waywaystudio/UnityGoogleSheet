@@ -29,22 +29,8 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
         private string currentViewFolderID;
         private bool isWaitForCreate;
         private bool isInitiated;
-
-        public static void ParseWorkSheet(string fileID, string workSheetName)
-        {
-            TypeMap.Init();
-            
-            UnityEditorWebRequest.Instance.ReadSpreadSheet(
-                new ReadSpreadSheetReqModel(fileID), 
-                null, 
-                x =>
-                {
-                    UnityGSParser.ParseJsonData(x);
-                    UnityGSParser.ParseSheet(x, workSheetName);
-                });
-        }
         
-        public static void ParseSpreadSheet(string fileID)
+        public static void ParseSpreadSheet(string fileID, string specificWorkSheetName)
         {
             TypeMap.Init();
             
@@ -54,12 +40,12 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
                 x =>
                 {
                     UnityGSParser.ParseJsonData(x);
-                    UnityGSParser.ParseSheet(x);
+                    UnityGSParser.ParseSheet(x, specificWorkSheetName);
                 });
         }
 
         private void ParseAllSpreadSheet() => DriveFileDataList.Where(file => file.type == FileType.Excel)
-                                                               .ForEach(x => ParseSpreadSheet(x.id));
+                                                               .ForEach(x => ParseSpreadSheet(x.id, null));
 
         private void Show()
         {
@@ -110,7 +96,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
         {
             FileType.ParentFolder => ToParent,
             FileType.Folder => () => ExplorerFolder(fileID),
-            FileType.Excel => () => ParseSpreadSheet(fileID),
+            FileType.Excel => () => ParseSpreadSheet(fileID, null),
             _ => () => Debug.LogError("UnknownFileType Inserted!")
         };
 

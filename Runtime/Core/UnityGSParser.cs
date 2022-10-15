@@ -1,10 +1,12 @@
 ﻿#if UNITY_EDITOR
 // ReSharper disable InconsistentNaming
 
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Sirenix.Utilities;
 using UnityEngine;
 using Wayway.Engine.UnityGoogleSheet.Core.HttpProtocolV2;
 using Wayway.Engine.UnityGoogleSheet.Core.IO;
@@ -13,35 +15,64 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
 {
     public static class UnityGSParser
     {
+        private static bool compareHash => UgsConfig.Instance.CompareHashCode;
+        private static bool isSkipGenerateScript => !UgsConfig.Instance.DoGenerateCSharpScript &&
+                                                    !UgsConfig.Instance.DoGenerateScriptableObject;
+        
         public static void ParseJsonData(ReadSpreadSheetResult sheetJsonData)
         {
             var importJsonData = GenerateData(sheetJsonData);
-            var existJsonData = GetExistJsonFileText(sheetJsonData.spreadSheetName);
 
-            if (UgsConfig.Instance.CompareHashCode &&
-                IsSameHashCode(importJsonData, existJsonData))
+            if (compareHash)
             {
-                Debug.Log($"{sheetJsonData.spreadSheetName} is nothing changed. Writing Process Skipped");
-                return;
+                var existJsonData = GetExistJsonFileText(sheetJsonData.spreadSheetName);
+
+                if (IsSameHashCode(importJsonData, existJsonData))
+                {
+                    Debug.Log($"{sheetJsonData.spreadSheetName} is nothing changed. Writing Process Skipped");
+                    return;
+                }
             }
 
             UnityFileWriter.WriteJsonData(sheetJsonData.spreadSheetName, importJsonData);
         }
 
-        public static void ParseSheet(ReadSpreadSheetResult sheetJsonData) => ParseSheet(sheetJsonData, null);
-        public static void ParseSheet(ReadSpreadSheetResult sheetJsonData, string targetWorkSheetName)
+        public static void ParseSheet(ReadSpreadSheetResult sheetJsonData, string targetWorkSheetName = null)
         {
-            if (!UgsConfig.Instance.DoGenerateCSharpScript && 
-                !UgsConfig.Instance.DoGenerateScriptableObject) 
+            if (isSkipGenerateScript) 
                 return;
-            
+
+            var sheetInfoList = GetSheetInformationList(sheetJsonData, targetWorkSheetName);
+
+            sheetInfoList.ForEach(x =>
+            {
+                if (UgsConfig.Instance.DoGenerateCSharpScript)
+                {
+                    var result = GenerateCSharpCode(x);
+                    UnityFileWriter.WriteCSharpScript(x.sheetFileName, $"{x.sheetName}", result);
+                }
+                
+                if (UgsConfig.Instance.DoGenerateScriptableObject)
+                {
+                    var result = GenerateScriptableObjectCode(x);
+                    UnityFileWriter.WriteScriptableObjectScript(x.sheetFileName,$"{x.sheetName}{UgsConfig.Instance.Suffix}", result);
+                }
+            });
+
+            UnityEditor.AssetDatabase.Refresh();
+        }
+        
+        private static IEnumerable<SheetInfo> GetSheetInformationList(ReadSpreadSheetResult sheetJsonData,
+            string targetWorkSheetName = null)
+        {
+            var result = new List<SheetInfo>();
             var workSheet = targetWorkSheetName is null ? null 
                                                         : sheetJsonData.jsonObject[targetWorkSheetName];
 
             if (targetWorkSheetName != null && !sheetJsonData.jsonObject.ContainsKey(targetWorkSheetName))
             {
                 Debug.LogError($"There is no Worksheet name of <color=red><b>{targetWorkSheetName}</b></color> in SpreadSheet");
-                return;
+                return null;
             }
             
             var count = 0;
@@ -53,17 +84,19 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                     count++;
                     continue;
                 }
-                
-                var existedWorkSheetText = GetExistJsonWorkSheetText(sheetJsonData.spreadSheetName, sheet.Key);
-                var importWorkSheetText = JsonConvert.SerializeObject(sheet.Value, Formatting.Indented);
 
-                if (UgsConfig.Instance.CompareHashCode &&
-                    IsSameHashCode(existedWorkSheetText, importWorkSheetText))
+                if (compareHash)
                 {
-                    Debug.Log($"{sheet.Key} is nothing changed. Writing Process Skipped");
+                    var existedWorkSheetText = GetExistJsonWorkSheetText(sheetJsonData.spreadSheetName, sheet.Key);
+                    var importWorkSheetText = JsonConvert.SerializeObject(sheet.Value, Formatting.Indented);
                     
-                    count++;
-                    continue;
+                    if (IsSameHashCode(existedWorkSheetText, importWorkSheetText))
+                    {
+                        Debug.Log($"{sheet.Key} is nothing changed. Writing Process Skipped");
+                    
+                        count++;
+                        continue;
+                    }
                 }
 
                 var sheetInfoTypes = new string[sheet.Value.Count];
@@ -92,23 +125,12 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                     sheetVariableNames = sheetInfoNames,
                     isEnumChecks = isEnum
                 };
-            
-                if (UgsConfig.Instance.DoGenerateCSharpScript)
-                {
-                    var result = GenerateCSharpCode(info);
-                    UnityFileWriter.WriteCSharpScript(info.sheetFileName, $"{info.sheetName}", result);
-                }
-
-                if (UgsConfig.Instance.DoGenerateScriptableObject)
-                {
-                    var result = GenerateScriptableObjectCode(info);
-                    UnityFileWriter.WriteScriptableObjectScript(info.sheetFileName,$"{info.sheetName}{UgsConfig.Instance.Suffix}", result);
-                }
-
+                
+                result.Add(info);
                 count++;
             }
-            
-            UnityEditor.AssetDatabase.Refresh();
+
+            return result;
         }
         
         private static string GenerateData(ReadSpreadSheetResult tableResult)

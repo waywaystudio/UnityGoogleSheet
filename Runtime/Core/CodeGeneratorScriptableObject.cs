@@ -25,6 +25,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
 //     ReSharper disable PartialTypeWithSinglePart
 //     ReSharper disable ConvertToConstant.Local
 #pragma warning disable CS0414
+
 #if UNITY_EDITOR
 using System.Reflection;
 using Sirenix.OdinInspector.Editor;
@@ -203,26 +204,25 @@ namespace @namespace
         private void WriteLoadFunction(string sheetFileName)
         {
             var builder = new StringBuilder();
-            builder.Append(@"        
-        public void LoadFromJson()
+            builder.Append(@"
+#if UNITY_EDITOR        
+        private void LoadFromJson()
         {
-    #if UNITY_EDITOR
+    
             @classList = Wayway.Engine.UnityGoogleSheet.Editor.Core.UgsEditorUtility
-                .LoadFromJson<@Class>(""@sheetFileName"");    
-    #endif              
+                .LoadFromJson<@Class>(""@sheetFileName""); 
         }
         
-        public void LoadFromGoogleSpreadSheet()
+        private void LoadFromGoogleSpreadSheet()
         {
-    #if UNITY_EDITOR
             Wayway.Engine.UnityGoogleSheet.Editor.Core.UgsExplorer
-                .ParseWorkSheet(spreadSheetID, ""@Class"");
+                .ParseSpreadSheet(spreadSheetID, ""@Class"");
 
             LoadFromJson();
             UnityEditor.EditorUtility.SetDirty(this);
             UnityEditor.AssetDatabase.Refresh();
-    #endif
-        }");
+        }
+#endif");
             
             GenerateForm = GenerateForm.Replace("@loadFunctions", builder.ToString());
             GenerateForm = GenerateForm.Replace("@sheetFileName", sheetFileName);
