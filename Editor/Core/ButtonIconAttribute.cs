@@ -4,38 +4,41 @@ using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 using UnityEngine;
-// ReSharper disable CheckNamespace
-// ReSharper disable ClassNeverInstantiated.Global
 
-public class ButtonIconAttribute : Attribute
+namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
 {
-    public readonly string Icon;
+    // ReSharper disable ClassNeverInstantiated.Global
 
-    public ButtonIconAttribute(string icon = "Transparent")
+    public class ButtonIconAttribute : Attribute
     {
-        Icon = icon;
-    }
+        public readonly string Icon;
 
-    public EditorIcon Get()
-    {
-        var prop = typeof(EditorIcons).GetProperty(Icon);
-        if (prop != null)
+        public ButtonIconAttribute(string icon = "Transparent")
         {
-            return (EditorIcon)prop.GetValue(null, null);
+            Icon = icon;
         }
 
-        return EditorIcons.Transparent;
-    }
-}
+        public EditorIcon Get()
+        {
+            var prop = typeof(EditorIcons).GetProperty(Icon);
+            if (prop != null)
+            {
+                return (EditorIcon)prop.GetValue(null, null);
+            }
 
-public sealed class ButtonAttributeDrawer : OdinAttributeDrawer<ButtonIconAttribute>
-{
-    protected override void DrawPropertyLayout(GUIContent label)
+            return EditorIcons.Transparent;
+        }
+    }
+
+    public sealed class ButtonAttributeDrawer : OdinAttributeDrawer<ButtonIconAttribute>
     {
-        var attribute = Attribute;
-        CallNextDrawer(label);
-        var rect = GUIHelper.GetCurrentLayoutRect();
-        attribute.Get().Draw(rect.Expand(-2), 16);
+        protected override void DrawPropertyLayout(GUIContent label)
+        {
+            var attribute = Attribute;
+            CallNextDrawer(label);
+            var rect = GUIHelper.GetCurrentLayoutRect();
+            attribute.Get().Draw(rect.Expand(-2), 16);
+        }
     }
 }
 #endif
