@@ -18,9 +18,6 @@ using Wayway.Engine.UnityGoogleSheet.Core.HttpProtocolV2;
 
 namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
 {
-#if ODIN_INSPECTOR
-    [OnInspectorDispose("Clear")]
-#endif
     public class UgsExplorer : ScriptableObject
     {
         public List<FileData> DriveFileDataList = new ();
@@ -114,6 +111,9 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
             LoadDriveFiles(currentViewFolderID);
         }
         
+#if ODIN_INSPECTOR
+        [OnInspectorDispose]
+#endif
         private void Clear()
         {
             isInitiated = false;
