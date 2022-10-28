@@ -1,6 +1,5 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -55,12 +54,12 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
             if (string.IsNullOrEmpty(folderPath)) folderPath = "Assets";
             if (string.IsNullOrEmpty(filter)) filter = "";
 
-            var gUIDs = UnityEditor.AssetDatabase.FindAssets(filter, new [] { folderPath });
+            var gUIDs = AssetDatabase.FindAssets(filter, new [] { folderPath });
 
             foreach (var x in gUIDs)
             {
-                var assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(x);
-                var data = UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, typeof(ScriptableObject)) as ScriptableObject;
+                var assetPath = AssetDatabase.GUIDToAssetPath(x);
+                var data = AssetDatabase.LoadAssetAtPath(assetPath, typeof(ScriptableObject)) as ScriptableObject;
 
                 if (!result.Contains(data))
                     result.Add(data);
