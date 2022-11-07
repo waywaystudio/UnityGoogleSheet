@@ -1,6 +1,7 @@
 # UnityGoogleSheet ignore Setting
 
+/Runtime/Core/Type/Example/*.*
+
 UgsConfig.asset
 UgsConfig.asset.meta
 
-/Runtime/Core/Type/Example/
