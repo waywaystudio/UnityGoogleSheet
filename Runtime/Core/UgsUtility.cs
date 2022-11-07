@@ -39,8 +39,8 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
 
             return result;
         }
-        
-        public static ScriptableObject GetScriptableObject(string className, string folderPath)
+
+        public static string GetScriptableObjectFilePath(string className, string folderPath)
         {
 #if UNITY_EDITOR
             if (string.IsNullOrEmpty(folderPath)) folderPath = "Assets";
@@ -67,9 +67,17 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                 }
             }
             
-            var assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(gUIDs[targetIndex]);
-            var result = UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, typeof(ScriptableObject)) as ScriptableObject;
-            return result;
+            return UnityEditor.AssetDatabase.GUIDToAssetPath(gUIDs[targetIndex]);
+#elif !UNITY_EDITOR
+            return string.Empty;
+#endif
+        }
+        
+        public static ScriptableObject GetScriptableObject(string className, string folderPath)
+        {
+#if UNITY_EDITOR
+            var assetPath = GetScriptableObjectFilePath(className, folderPath);
+            return UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, typeof(ScriptableObject)) as ScriptableObject;
 #elif !UNITY_EDITOR
             return null;
 #endif

@@ -20,6 +20,14 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
         
         protected override OdinMenuTree BuildMenuTree()
         {
+            if (UgsUtility.GetScriptableObject("UgsConfig", "Assets") is null)
+            {
+                var defaultDirectory = UgsUtility.GetScriptableObjectFilePath("UgsExplorer", "Assets")
+                                                 .Replace("/UgsExplorer.asset", "");
+                
+                UgsUtility.CreateScriptableObject("UgsConfig", defaultDirectory);
+            }
+            
             var explorer = Resources.LoadAll<UgsExplorer>("").FirstOrDefault();
             var dataList = Resources.LoadAll<UgsDataList>("").FirstOrDefault();
             
