@@ -15,8 +15,8 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
 {
     public class UgsDataList : ScriptableObject
     {
-        [SerializeField] private List<ScriptableObject> spreadSheetDataList;
-        [SerializeField] private List<MonoScript> tableDataList;
+        private List<ScriptableObject> spreadSheetDataList = new ();
+        private List<MonoScript> tableDataList = new ();
 
 #if ODIN_INSPECTOR
         [OnInspectorInit]
@@ -50,7 +50,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
             AssetDatabase.Refresh();
         }
         
-        public static List<ScriptableObject> GetScriptableObjectList(string folderPath, string filter)
+        private static List<ScriptableObject> GetScriptableObjectList(string folderPath, string filter)
         {
             var result = new List<ScriptableObject>();
 
@@ -81,6 +81,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
             switch (member.Name)
             {
                 case "spreadSheetDataList":
+                    attributes.Add(new ShowInInspectorAttribute());
                     attributes.Add(new TitleGroupAttribute("SpreadSheet Data List", "values"));
                     attributes.Add(new SearchableAttribute());
                     attributes.Add(new ListDrawerSettingsAttribute
@@ -93,6 +94,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
                     attributes.Add(new PropertySpaceAttribute(0f, 20f));
                     break;
                 case "tableDataList":
+                    attributes.Add(new ShowInInspectorAttribute());
                     attributes.Add(new TitleGroupAttribute("SpreadSheet Data Script List", "just for Check"));
                     attributes.Add(new SearchableAttribute());
                     attributes.Add(new ListDrawerSettingsAttribute
