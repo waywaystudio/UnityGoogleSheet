@@ -12,5 +12,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97a7489c5f0e72147a0f2b2bb013dd1d, type: 3}
   m_Name: UgsDataList
   m_EditorClassIdentifier: 
-  spreadSheetDataList: []
-  tableDataList: []
