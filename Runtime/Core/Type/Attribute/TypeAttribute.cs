@@ -3,17 +3,17 @@
     public class TypeAttribute : System.Attribute
     {
         public System.Type type;
-        public string[] sepractors;
+        public string[] separactors;
          
         public TypeAttribute(System.Type Type)
         { 
-            this.type = Type;
-            this.sepractors = new string[] { Type.Name };
+            type = Type;
+            separactors = new [] { Type.Name };
         }
         public TypeAttribute(System.Type Type, params string[] TypeName)
         { 
-            this.type = Type;
-            this.sepractors = TypeName;
+            type = Type;
+            separactors = TypeName;
         }
     }
 }

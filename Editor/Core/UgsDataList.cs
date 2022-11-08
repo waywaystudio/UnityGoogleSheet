@@ -16,20 +16,23 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
     public class UgsDataList : ScriptableObject
     {
         [SerializeField] private List<ScriptableObject> spreadSheetDataList;
-        [SerializeField] private List<Object> tableDataList;
+        [SerializeField] private List<MonoScript> tableDataList;
 
 #if ODIN_INSPECTOR
         [OnInspectorInit]
 #endif
         private void GetSheetDataObjectList()
         {
+            spreadSheetDataList.Clear();
+            tableDataList.Clear();
+            
             spreadSheetDataList = GetScriptableObjectList(UgsConfig.Instance.ScriptableObjectDataPath, UgsConfig.Instance.Suffix);
-            tableDataList = UgsUtility.GetObjectList("ScriptableObject", UgsConfig.Instance.ScriptableObjectScriptPath, UgsConfig.Instance.Suffix);
+            tableDataList = UgsUtility.GetMonoScriptList(UgsConfig.Instance.ScriptableObjectScriptPath, $"{UgsConfig.Instance.Suffix}");
         }
         
         private void UpdateTableObjectList()
         {
-            var tableObjectList = UgsUtility.GetObjectList("ScriptableObject", UgsConfig.Instance.ScriptableObjectScriptPath, UgsConfig.Instance.Suffix);
+            var tableObjectList = UgsUtility.GetMonoScriptList(UgsConfig.Instance.ScriptableObjectScriptPath, $"{UgsConfig.Instance.Suffix}");
 
             tableObjectList.ForEach(x =>
             {
@@ -50,7 +53,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
         public static List<ScriptableObject> GetScriptableObjectList(string folderPath, string filter)
         {
             var result = new List<ScriptableObject>();
-#if UNITY_EDITOR
+
             if (string.IsNullOrEmpty(folderPath)) folderPath = "Assets";
             if (string.IsNullOrEmpty(filter)) filter = "";
 
@@ -61,10 +64,10 @@ namespace Wayway.Engine.UnityGoogleSheet.Editor.Core
                 var assetPath = AssetDatabase.GUIDToAssetPath(x);
                 var data = AssetDatabase.LoadAssetAtPath(assetPath, typeof(ScriptableObject)) as ScriptableObject;
 
-                if (!result.Contains(data))
+                if (!result.Contains(data) && data is not null)
                     result.Add(data);
             }
-#endif
+
             return result;
         }
     }

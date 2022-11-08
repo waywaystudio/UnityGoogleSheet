@@ -48,8 +48,8 @@ namespace @namespace
 
 /* Editor Functions. */
     #if UNITY_EDITOR
-        private string spreadSheetID = ""@spreadSheetID"";
-        private string sheetID = ""@sheetID"";
+        private readonly string spreadSheetID = ""@spreadSheetID"";
+        private readonly string sheetID = ""@sheetID"";
     #endif
 @loadFunctions
 /* innerClass. */
@@ -95,7 +95,7 @@ namespace @namespace
             return GenerateForm;
         }
         
-        private void WriteAssembly(string[] assemblies, IReadOnlyList<string> types = null, IReadOnlyList<bool> isEnums = null)
+        private void WriteAssembly(string[] assemblies, IReadOnlyList<string> types, IReadOnlyList<bool> isEnums)
         {
             if (assemblies != null)
             {
@@ -105,25 +105,35 @@ namespace @namespace
                     builder.AppendLine($"using {assembly};");
                 }
 
-                GenerateForm = GenerateForm.Replace("@assemblies", builder.ToString());
                 builder.AppendLine("@assemblies");
+                GenerateForm = GenerateForm.Replace("@assemblies", builder.ToString());
             }
 
             if (types != null && isEnums != null)
             {
                 var builder = new StringBuilder();
+                var duplicationCheck = new List<string>();
+                
                 for (var i = 0; i < types.Count; i++)
                 {
                     var type = types[i];
                     var isEnum = isEnums[i];
+
                     type = type.Replace(" ", null);
                     type = type.Replace("Enum<", null);
                     type = type.Replace(">", null);
+
+                    if (!isEnum || string.IsNullOrEmpty(TypeMap.EnumMap[type].NameSpace)) continue;
                     
-                    if (isEnum && !string.IsNullOrEmpty(TypeMap.EnumMap[type].NameSpace))
+                    var namespacePhase = $"using {TypeMap.EnumMap[type].NameSpace};";
+
+                    if (duplicationCheck.Contains(namespacePhase))
                     {
-                        builder.AppendLine($"using {TypeMap.EnumMap[type].NameSpace};");
+                        continue;
                     }
+                        
+                    duplicationCheck.Add(namespacePhase);
+                    builder.AppendLine(namespacePhase);
                 }
                 
                 GenerateForm = GenerateForm.Replace("@assemblies", builder.ToString());
@@ -151,48 +161,47 @@ namespace @namespace
 
         private void WriteTypes(IReadOnlyList<string> types, IReadOnlyList<string> fieldNames, IReadOnlyList<bool> isEnum)
         {
-            if (types != null)
+            if (types == null) return;
+            
+            var builder = new StringBuilder();
+                
+            for (var i = 0; i < types.Count(); i++)
             {
-                var builder = new StringBuilder();
-                
-                for (var i = 0; i < types.Count(); i++)
+                if (isEnum[i] == false)
                 {
-                    if (isEnum[i] == false)
+                    var targetType = types[i];
+                    var targetField = fieldNames[i];
+                    TypeMap.StrMap.TryGetValue(targetType, out var outType);
+                        
+                    if (outType == null)
                     {
-                        var targetType = types[i];
-                        var targetField = fieldNames[i];
-                        TypeMap.StrMap.TryGetValue(targetType, out var outType);
-                        
-                        if (outType == null)
-                        {
-                            var debugTypes = string.Join("  ", sheetInfo.sheetTypes);
+                        var debugTypes = string.Join("  ", sheetInfo.sheetTypes);
                             
-                            Debug.Log("<color=#00ff00><b>-------UGS IMPORTANT ERROR DEBUG---------</b></color>");
-                            Debug.LogError($"<color=white><b>Error Sheet Name => </b></color>{sheetInfo.sheetFileName}.{sheetInfo.sheetName}");
-                            Debug.LogError($"<color=white><b>Your type list => </b></color> => {debugTypes}");
-                            Debug.LogError($"<color=#00ff00><b>error field =>:</b></color> {targetField} : {sheetInfo.sheetTypes[i]}");
+                        Debug.Log("<color=#00ff00><b>-------UGS IMPORTANT ERROR DEBUG---------</b></color>");
+                        Debug.LogError($"<color=white><b>Error Sheet Name => </b></color>{sheetInfo.sheetFileName}.{sheetInfo.sheetName}");
+                        Debug.LogError($"<color=white><b>Your type list => </b></color> => {debugTypes}");
+                        Debug.LogError($"<color=#00ff00><b>error field =>:</b></color> {targetField} : {sheetInfo.sheetTypes[i]}");
                             
-                            throw new TypeParserNotFoundException("Type Parser Not Found, You made your own type parser? check custom type document on gitbook document.");
-                        }
-                        
-                        builder.AppendLine($"\t\t\tpublic {GetCSharpRepresentation(TypeMap.StrMap[types[i]], true)} {ToPascalCasing(fieldNames[i])};");
+                        throw new TypeParserNotFoundException("Type Parser Not Found, You made your own type parser? check custom type document on gitbook document.");
                     }
-                    else
-                    {
-                        var str = types[i];
                         
-                        str = str.Replace("<", null);
-                        str = str.Replace(">", null);
-                        str = str.Replace(" ", null);
-                        str = str.Remove(0, 4);
-                        
-                        builder.AppendLine($"\t\t\tpublic {GetCSharpRepresentation(TypeMap.EnumMap[str].Type, true)} {ToPascalCasing(fieldNames[i])};");
-                    }
+                    builder.AppendLine($"\t\t\tpublic {GetCSharpRepresentation(TypeMap.StrMap[types[i]], true)} {ToPascalCasing(fieldNames[i])};");
                 }
-                
-                GenerateForm = GenerateForm.Replace("@types", builder.ToString());
-                GenerateForm = GenerateForm.Replace("@keyType", types[0]);
+                else
+                {
+                    var str = types[i];
+
+                    str = str.Replace("<", null);
+                    str = str.Replace(">", null);
+                    str = str.Replace(" ", null);
+                    str = str.Remove(0, 4);
+
+                    builder.AppendLine($"\t\t\tpublic {GetCSharpRepresentation(TypeMap.EnumMap[str].Type, true)} {ToPascalCasing(fieldNames[i])};");
+                }
             }
+                
+            GenerateForm = GenerateForm.Replace("@types", builder.ToString());
+            GenerateForm = GenerateForm.Replace("@keyType", types[0]);
         }
         
         private void WriteSpreadSheetData(string spreadID, string sheetID)
@@ -263,47 +272,46 @@ namespace @namespace
 
         private static string GetCSharpRepresentation(Type t, bool trimArgCount)
         {
-            if (t.IsGenericType)
-            {
-                var genericArgs = t.GetGenericArguments().ToList();
+            if (!t.IsGenericType) return t.Name;
+            
+            var genericArgs = t.GetGenericArguments().ToList();
 
-                return GetCSharpRepresentation(t, trimArgCount, genericArgs);
-            }
-
-            return t.Name;
+            return GetCSharpRepresentation(t, trimArgCount, genericArgs);
         }
 
         private static string GetCSharpRepresentation(Type t, bool trimArgCount, IList<Type> availableArguments)
         {
-            if (t.IsGenericType)
+            if (!t.IsGenericType) return t.Name;
+            
+            var value = t.Name;
+            
+            if (trimArgCount && value.IndexOf("`", StringComparison.Ordinal) > -1)
             {
-                var value = t.Name;
-                if (trimArgCount && value.IndexOf("`", StringComparison.Ordinal) > -1)
-                {
-                    value = value[..value.IndexOf("`", StringComparison.Ordinal)];
-                }
-
-                if (t.DeclaringType != null)
-                    value = GetCSharpRepresentation(t.DeclaringType, trimArgCount, availableArguments) + "+" + value;
-                var argString = "";
-                var thisTypeArgs = t.GetGenericArguments();
-                
-                for (var i = 0; i < thisTypeArgs.Length && availableArguments.Count > 0; i++)
-                {
-                    if (i != 0) argString += ", ";
-                    argString += GetCSharpRepresentation(availableArguments[0], trimArgCount);
-                    availableArguments.RemoveAt(0);
-                }
-                
-                if (argString.Length > 0)
-                {
-                    value += "<" + argString + ">";
-                }
-
-                return value;
+                value = value[..value.IndexOf("`", StringComparison.Ordinal)];
             }
 
-            return t.Name;
+            if (t.DeclaringType != null)
+            {
+                value = GetCSharpRepresentation(t.DeclaringType, trimArgCount, availableArguments) + "+" + value;
+            }
+                
+            var argString = "";
+            var thisTypeArgs = t.GetGenericArguments();
+                
+            for (var i = 0; i < thisTypeArgs.Length && availableArguments.Count > 0; i++)
+            {
+                if (i != 0) argString += ", ";
+                argString += GetCSharpRepresentation(availableArguments[0], trimArgCount);
+                availableArguments.RemoveAt(0);
+            }
+                
+            if (argString.Length > 0)
+            {
+                value += "<" + argString + ">";
+            }
+
+            return value;
+
         }
         
         private static string ToCamelCasing(string original)

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+// using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -103,6 +105,29 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
 #endif
             return result;
         }
+
+#if UNITY_EDITOR
+        public static List<UnityEditor.MonoScript> GetMonoScriptList(string folderPath, string filter)
+        {
+            var result = new List<UnityEditor.MonoScript>();
+
+            if (string.IsNullOrEmpty(folderPath)) folderPath = "Assets";
+            if (string.IsNullOrEmpty(filter)) filter = $"t:MonoScript";
+
+            var gUIDs = UnityEditor.AssetDatabase.FindAssets(filter, new [] { folderPath });
+
+            foreach (var x in gUIDs)
+            {
+                var assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(x);
+                var data = UnityEditor.AssetDatabase.LoadAssetAtPath(assetPath, typeof(UnityEditor.MonoScript)) as UnityEditor.MonoScript;
+
+                if (!result.Contains(data) && data is not null)
+                    result.Add(data);
+            }
+
+            return result;
+        }
+#endif
         
         public static ScriptableObject CreateScriptableObject(string className, string folderPath)
         {
@@ -140,7 +165,9 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
         public static void InvokeFunction(Object targetObject, string functionName)
         {
             var scriptableObjectType = targetObject.GetType();
-            var info = scriptableObjectType.GetMethod(functionName);
+            var info = scriptableObjectType.GetMethod(functionName, BindingFlags.NonPublic | BindingFlags.Instance);
+            
+            Debug.Log($"Type : {scriptableObjectType}, is Info ? : {info != null}");
             
             if (info != null)
             {

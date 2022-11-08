@@ -23,7 +23,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
             }
             else
             { 
-                    throw new UGSValueParseException("Parse Failed => " + value + " To " + GetType().Name); 
+                throw new UGSValueParseException("Parse Failed => " + value + " To " + GetType().Name); 
             }
             
             return list;
