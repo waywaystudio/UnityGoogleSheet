@@ -86,7 +86,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
                             StrMap.Add(separator, att.type);
 #if !UNITY_EDITOR
                             Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine(" ㄴ[TypeMap] Added Sepractors " + sepractor);
+                            Console.WriteLine(" ㄴ[TypeMap] Added Sepractors " + separator);
 #endif
                     }
                 }
