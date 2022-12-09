@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using Wayway.Engine.UnityGoogleSheet.Core.Exception;
 using Wayway.Engine.UnityGoogleSheet.Core.IO;
@@ -405,24 +406,36 @@ namespace @namespace
             defaultForm = defaultForm.Replace("@loadFunction", builder.ToString());
         }
 
-        private string ToCamelCasing(string target)
+        private static string ToCamelCasing(string original)
         {
-            if(!string.IsNullOrEmpty(target) && target.Length > 1)
+            if (string.IsNullOrEmpty(original) || char.IsLower(original, 0))
             {
-                return char.ToLowerInvariant(target[0]) + target[1..];
+                return original;
             }
-            
-            return string.IsNullOrEmpty(target) ? string.Empty  
-                                                : target.ToLowerInvariant();
+
+            return char.ToLowerInvariant(ToPascalCasing(original)[0]) + original[1..];
         }
 
-        private string ToPascalCasing(string target)
+        private static string ToPascalCasing(string original)
         {
-            var replace = target.ToLower().Replace("_", " ");
-            var info = CultureInfo.CurrentCulture.TextInfo;
-            replace = info.ToTitleCase(replace).Replace(" ", string.Empty);
+            var invalidCharsRgx = new Regex("[^a-zA-Z0-9]");
+            var whiteSpace = new Regex(@"(?<=\s)");
+            var startsWithLowerCaseChar = new Regex("^[a-z]");
+            var firstCharFollowedByUpperCasesOnly = new Regex("(?<=[A-Z])[A-Z0-9]+$");
+            var lowerCaseNextToNumber = new Regex("(?<=[0-9])[a-z]");
+            var upperCaseInside = new Regex("(?<=[A-Z])[A-Z]+?((?=[A-Z][a-z])|(?=[0-9]))");
+            var pascalCase = invalidCharsRgx.Replace(whiteSpace.Replace(original, ""), string.Empty)
+                .Split(new [] { '_' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(w => startsWithLowerCaseChar.Replace(w, m => m.Value.ToUpper()))
+                .Select(w => firstCharFollowedByUpperCasesOnly.Replace(w, m => m.Value.ToLower()))
+                .Select(w => lowerCaseNextToNumber.Replace(w, m => m.Value.ToUpper()))
+                .Select(w => upperCaseInside.Replace(w, m => m.Value.ToLower()));
 
-            return replace;
+            var result = string.Concat(pascalCase);
+
+            return result.Length <= 2
+                ? result.ToUpper()
+                : result;
         }
     }
 }
