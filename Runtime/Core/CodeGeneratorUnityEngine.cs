@@ -140,7 +140,7 @@ namespace Wayway.Engine.UnityGoogleSheet.Core
 @assemblies
 namespace @namespace
 {
-    [TableStruct]
+    [TableStruct, Serializable]
     public partial class @class : ITable
     {
         public delegate void OnLoadedFromGoogleSheets(List<@class> loadedList, Dictionary<@keyType, @class> loadedDictionary);
