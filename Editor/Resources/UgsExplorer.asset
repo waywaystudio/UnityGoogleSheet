@@ -12,4 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 923ccd1e781e6c34c89e6442680a96ec, type: 3}
   m_Name: UgsExplorer
   m_EditorClassIdentifier: 
-  DriveFileDataList: []
+  DriveFileDataList:
+  - type: 2
+    id: 1UJA_ck9ItFR5bdvFOoFp_2EDC5NAMk-1TuyknvkRd0k
+    url: https://docs.google.com/spreadsheets/d/1UJA_ck9ItFR5bdvFOoFp_2EDC5NAMk-1TuyknvkRd0k/edit?usp=drivesdk
+    fileName: BaseData
+  - type: 2
+    id: 1TmUKk771bEGgE3MpOTi7L3dZ4kdWGB-W-lChpgy6-SE
+    url: https://docs.google.com/spreadsheets/d/1TmUKk771bEGgE3MpOTi7L3dZ4kdWGB-W-lChpgy6-SE/edit?usp=drivesdk
+    fileName: Enums
